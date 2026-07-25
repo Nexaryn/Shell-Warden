@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 if [ "$EUID" -ne 0 ]; then
   echo "Please run as root (sudo ./audit.sh)"
   exit 1

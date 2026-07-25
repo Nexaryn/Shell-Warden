@@ -1,0 +1,14 @@
+--- Linux Security Audit Report ---
+Date: Sat Jul 25 11:29:40 PM IST 2026
+-----------------------------------
+[PASS] [0;32mRoot login is disabled[0m[cite: 3]
+[PASS] [0;32mSSH Password Authentication is disabled[0m
+[FAIL] [0;31mSSH is running on default port 22[0m
+[PASS] [0;32mFirewall is enabled[0m
+[PASS] [0;32mNo world-writable files in /etc[0m
+[PASS] [0;32mNo world-writable files in /tmp[0m
+[PASS] [0;32mNormal amount of SUID binaries found (17).[0m
+[PASS] [0;32mNo users with empty passwords found[0m
+[FAIL] [0;31mUnattended-upgrades is NOT enabled[0m
+-----------------------------------
+Final score: 7/9 checks passed.

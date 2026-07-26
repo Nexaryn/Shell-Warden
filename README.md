@@ -62,7 +62,3 @@ Final score: 7/9 checks passed.
 Report saved to: ./reports/audit-2026-07-25-235436.log
 
 ```
-
-```
-
-```

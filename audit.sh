@@ -21,6 +21,7 @@ REPORT_FILE="$LOG_DIR/audit-$(date +%F-%H%M%S).log"
   ./checks/firewall.sh
   ./checks/files.sh
   ./checks/user.sh
+  ./checks/kernel.sh
   
 } | tee "$REPORT_FILE"
 

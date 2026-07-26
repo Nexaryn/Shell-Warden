@@ -6,7 +6,7 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-echo "Welcome to Linux Security Auditor"[cite: 4]
+echo "Welcome to Linux Security Auditor"
 echo "Starting audit..."
 
 LOG_DIR="./reports"

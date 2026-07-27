@@ -1,43 +1,30 @@
 #!/bin/bash
-set -uo pipefail
 
-if [ "$EUID" -ne 0 ]; then
-  echo "Please run as root (sudo ./audit.sh)"
-  exit 1
-fi
+[[ $EUID -ne 0 ]] && echo "[-] Run as root" && exit 1
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CHECKS_DIR="$SCRIPT_DIR/checks"
-LOG_DIR="$SCRIPT_DIR/reports"
-mkdir -p "$LOG_DIR"
-REPORT_FILE="$LOG_DIR/audit-$(date +%F-%H%M%S).log"
+DIR="$(cd "$(dirname "$0")" && pwd)"
+LOG="$DIR/reports/audit-$(date +%Y%m%d_%H%M%S).log"
+mkdir -p "$DIR/reports"
 
-echo "Welcome to Linux Security Auditor"
-echo "Starting audit..."
+passed=0
+total=0
 
-CHECKS=(ssh.sh firewall.sh files.sh user.sh kernel.sh)
+echo "[+] Audit Started" | tee -a "$LOG"
 
-{
-  echo "--- Linux Security Audit Report ---"
-  echo "Date: $(date)"
-  echo "-----------------------------------"
-  for c in "${CHECKS[@]}"; do
-    path="$CHECKS_DIR/$c"
-    if [ -x "$path" ]; then
-      "$path"
+for s in "$DIR/checks"/*.sh; do
+    [[ -f "$s" ]] || continue
+    ((total++))
+    name=$(basename "$s" .sh)
+
+    echo -n "Checking $name... "
+    
+    if "$s" >> "$LOG" 2>&1; then
+        echo -e "\033[0;32m[PASS]\033[0m"
+        ((passed++))
     else
-      echo "[FAIL] $c missing or not executable"
+        echo -e "\033[0;31m[FAIL]\033[0m"
     fi
-  done
-} | tee "$REPORT_FILE"
+done
 
-PASS_COUNT=$(grep -c "\[PASS\]" "$REPORT_FILE")
-TOTAL_COUNT=$(grep -E -c "\[PASS\]|\[FAIL\]" "$REPORT_FILE")
-
-{
-  echo "-----------------------------------"
-  echo "Final score: $PASS_COUNT/$TOTAL_COUNT checks passed."
-  echo "Report saved to: $REPORT_FILE"
-} | tee -a "$REPORT_FILE"
-
-[ "$PASS_COUNT" -eq "$TOTAL_COUNT" ]
+echo "Score: $passed/$total" | tee -a "$LOG"
+echo "Saved to: $LOG"

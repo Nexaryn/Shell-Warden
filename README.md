@@ -1,4 +1,3 @@
-```markdown
 # 🛡️ Shell Warden
 
 A lightweight Linux security auditor, built from scratch in plain Bash. It runs a set of checks against your system, tells you what's wrong in plain English, tells you how to fix it, and gives you a risk score — no dependencies, no config files, just scripts.
@@ -15,9 +14,9 @@ I'm learning Linux and wanted something more hands-on than just reading hardenin
 
 ## ✅ Requirements
 
-* Bash
-* Root privileges (`sudo`) — needed to read protected files like `/etc/shadow` and the real SSH config
-* Works on **Debian, Ubuntu, Arch, Fedora, RHEL** — checks detect your package manager and firewall tool automatically, nothing is hardcoded to one distro
+- Bash
+- Root privileges (`sudo`) — needed to read protected files like `/etc/shadow` and the real SSH config
+- Works on **Debian, Ubuntu, Arch, Fedora, RHEL** — checks detect your package manager and firewall tool automatically, nothing is hardcoded to one distro
 
 ---
 
@@ -26,22 +25,22 @@ I'm learning Linux and wanted something more hands-on than just reading hardenin
 4 categories, 10 individual checks total:
 
 ### 🔑 SSH Hardening (`checks/ssh.sh`)
-* Root login is disabled
-* Password authentication is disabled (key-based login only)
-* SSH isn't running on the default port 22
+- Root login is disabled
+- Password authentication is disabled (key-based login only)
+- SSH isn't running on the default port 22
 
 ### 🔥 Firewall Status (`checks/firewall.sh`)
-* Detects and checks whichever firewall you actually have: **UFW**, **firewalld**, **nftables**, or raw **iptables**
-* Flags a system with no active firewall at all
+- Detects and checks whichever firewall you actually have: **UFW**, **firewalld**, **nftables**, or raw **iptables**
+- Flags a system with no active firewall at all
 
 ### 📂 File Permissions (`checks/files.sh`)
-* World-writable files in `/etc`
-* World-writable files in `/tmp`
-* World-writable directories missing the sticky bit (the real risk — lets anyone delete/rename other users' files)
-* Unusually high number of SUID binaries
+- World-writable files in `/etc`
+- World-writable files in `/tmp`
+- World-writable directories missing the sticky bit (the real risk — lets anyone delete/rename other users' files)
+- Unusually high number of SUID binaries
 
 ### 👤 User Security (`checks/user.sh`)
-* Checks `/etc/shadow` for accounts with a truly empty password (locked accounts are correctly ignored)
+- Checks `/etc/shadow` for accounts with a truly empty password (locked accounts are correctly ignored)
 
 Every failed check comes tagged with a severity — `CRITICAL`, `HIGH`, `MEDIUM`, or `LOW` — and a one-line fix, so you're never just staring at a red `[FAIL]` wondering what to do next.
 
@@ -50,11 +49,13 @@ Every failed check comes tagged with a severity — `CRITICAL`, `HIGH`, `MEDIUM`
 ## 🚀 Getting Started
 
 1. Make everything executable:
+
    ```bash
    chmod +x audit.sh checks/*.sh
    ```
 
 2. Run it:
+
    ```bash
    sudo ./audit.sh
    ```
@@ -63,7 +64,7 @@ That's it. No flags, no setup, no config files to edit.
 
 ---
 
-## 📊 How scoring works
+## 📊 How Scoring Works
 
 Alongside a simple `passed/total` count, you get a **risk score** — a weighted number based on how serious the failures are:
 
@@ -115,15 +116,15 @@ Shell-Warden/
 └── reports/          # timestamped logs from every run, auto-created
 ```
 
-Want to add your own check? Drop a new `.sh` file in `checks/` that prints `[PASS]`/`[FAIL][SEVERITY]` lines and exits `0` on pass, non-zero on fail — `audit.sh` will pick it up automatically, no wiring needed.
+Want to add your own check? Drop a new `.sh` file in `checks/` that prints `[PASS]` / `[FAIL][SEVERITY]` lines and exits `0` on pass, non-zero on fail — `audit.sh` will pick it up automatically, no wiring needed.
 
 ---
 
 ## 🗺️ Roadmap
 
-* Map checks to actual CIS Benchmark IDs
-* Optional config file to turn individual checks on/off
-* Docker container checks (exposed ports, containers running as root)
+- Map checks to actual CIS Benchmark IDs
+- Optional config file to turn individual checks on/off
+- Docker container checks (exposed ports, containers running as root)
 
 ---
 
@@ -140,4 +141,3 @@ shellcheck audit.sh checks/*.sh
 ## ⭐ Support
 
 If this helped you learn something or secure your own box, a star means a lot — this is a learning project and every bit of feedback helps it get better.
-```

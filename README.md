@@ -1,73 +1,96 @@
-# 🛡️ Linux Security Auditor
+```markdown
+# 🛡️ Shell Warden
 
-A lightweight, automated security auditing tool. It evaluates core system configurations and generates a straightforward PASS/FAIL report to help you identify vulnerabilities and secure your server quickly.
+A lightweight, no-frills security auditing tool for Linux. It checks your machine against a basic hardening baseline and gives you a plain PASS/FAIL report, a risk score, and a plain-English reason for every point you lost.
+
+Works on Debian, Ubuntu, Arch, RHEL/Fedora, and anything else with a standard `/etc/shadow`, `sshd`, and one of the common firewall tools.
+
+---
+
+## Why I built this
+
+I'm learning Linux and wanted something hands-on instead of just reading hardening checklists. This checks my own machine against a small baseline I picked myself. Each check lives in its own file in `checks/`, and `audit.sh` just loops through all of them and adds up the results. Nothing here auto-fixes anything on purpose — it tells you what's wrong and how to fix it, you decide if you want to.
 
 ---
 
 ## ✅ Requirements
 
 * Root privileges (`sudo`)
+* Bash
+
+That's it. No extra packages needed to run the auditor itself — the checks just look at whatever's already on your system (firewall tool, ssh config, file permissions) and adapt to what they find.
 
 ---
 
 ## ⚙️ What It Checks
 
-The auditor runs a suite of tests across five critical security domains:
+**SSH Hardening** (`checks/ssh.sh`)
+* Root login disabled
+* Password authentication disabled
+* SSH not running on the default port 22
 
-* **SSH Hardening:** Verifies that Root login is disabled, Password Authentication is disabled, and a non-default SSH Port is in use.
-* **Firewall Status:** Confirms that the Uncomplicated Firewall (UFW) is active and enabled.
-* **File Permissions:** Scans for dangerous world-writable files in `/etc` and `/tmp`, and flags unusually high numbers of SUID binaries.
-* **User & System Security:** Checks `/etc/shadow` for vulnerable empty user passwords and ensures `unattended-upgrades` is actively applying security patches.
-* **Kernel Hardening:** Checks kernel/sysctl security settings (e.g. ASLR, IP forwarding).
+**Firewall Status** (`checks/firewall.sh`)
+* Checks for an active firewall — tries UFW, then firewalld, then nftables, then falls back to checking iptables rules directly. Works no matter which one your distro uses.
+
+**File Permissions** (`checks/files.sh`)
+* World-writable files in `/etc`
+* World-writable files in `/tmp`
+* World-writable directories missing the sticky bit (the actual dangerous version of that problem)
+* Unusually high number of SUID binaries
+
+**User Security** (`checks/user.sh`)
+* `/etc/shadow` scanned for accounts with empty passwords
+
+Every failed check comes with a `Fix:` hint telling you the actual command or config change needed — this isn't just a checklist, it tells you what to do about it.
 
 ---
 
 ## 🚀 Getting Started
-
-Run the following commands in your terminal to execute the auditor.
-
-> **Note:** Root privileges (`sudo`) are strictly required so the script can accurately read protected system files like `/etc/shadow` and SSH configurations.
 
 1. Make the main script and all check scripts executable:
    ```bash
    chmod +x audit.sh checks/*.sh
    ```
 
-2. Execute the auditor:
+2. Run it:
    ```bash
    sudo ./audit.sh
    ```
 
-The script exits with status `0` if all checks pass, and non-zero if any check fails — useful for CI/cron.
+Root is required since it needs to read `/etc/shadow` and the real SSH config.
 
 ---
 
 ## 📄 Sample Output
 
-The script outputs results directly to your terminal and automatically saves a timestamped copy of the report for your records.
+```
+[+] Audit Started
+Checking files... [PASS]
+Checking firewall... [FAIL]
+Checking ssh... [FAIL]
+Checking user... [PASS]
+Score: 2/4
+Risk score: 6 (0 is best, lower is better)
 
+Why you lost points:
+  [FAIL][CRITICAL] No firewall tool found or active -> Fix: install ufw (Debian/Ubuntu), firewalld (RHEL/Fedora), or nftables (Arch) and enable it
+  [FAIL][LOW] SSH is running on default port 22 -> Fix: add 'Port 2222' (or any port) to /etc/ssh/sshd_config
+Saved to: /path/to/reports/audit-20260725_235436.log
 ```
-Welcome to Linux Security Auditor
-Starting audit...
---- Linux Security Audit Report ---
-Date: Sat Jul 25 23:54:36 IST 2026
------------------------------------
-[PASS] Root login is disabled
-[PASS] SSH Password Authentication is disabled
-[FAIL] SSH is running on default port 22
-[FAIL] Firewall is disabled
-[PASS] No world-writable files in /etc
-[PASS] No world-writable files in /tmp
-[PASS] Normal amount of SUID binaries found (42).
-[PASS] No users with empty passwords found
-[PASS] Unattended-upgrades is enabled (Auto-patching active)
------------------------------------
-Final score: 7/9 checks passed.
-Report saved to: ./reports/audit-2026-07-25-235436.log
-```
+
+The risk score adds up points per fail based on severity — CRITICAL is worth 10, HIGH is 5, MEDIUM is 3, LOW is 1. Lower is always better, 0 means everything passed.
+
+Every run also saves a full timestamped log in `reports/`, so you've got a history to look back on.
+
+---
+
+## Roadmap
+
+Nothing planned right now — keeping this focused on the 4 checks it already does well rather than piling on more. If that changes I'll update this.
 
 ---
 
 ## 🤝 Contributing
 
-Issues and PRs welcome. Please run `shellcheck` on any script changes before submitting.
+Issues and PRs welcome. Run `shellcheck` on any script changes before submitting.
+```

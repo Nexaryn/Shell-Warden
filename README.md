@@ -1,53 +1,55 @@
 ```markdown
 # 🛡️ Shell Warden
 
-A lightweight, no-frills security auditing tool for Linux. It checks your machine against a basic hardening baseline and gives you a plain PASS/FAIL report, a risk score, and a plain-English reason for every point you lost.
+A lightweight Linux security auditor, built from scratch in plain Bash. It runs a set of checks against your system, tells you what's wrong in plain English, tells you how to fix it, and gives you a risk score — no dependencies, no config files, just scripts.
 
-Works on Debian, Ubuntu, Arch, RHEL/Fedora, and anything else with a standard `/etc/shadow`, `sshd`, and one of the common firewall tools.
+![lint](https://github.com/Nexaryn/Shell-Warden/actions/workflows/lint.yml/badge.svg)
 
 ---
 
-## Why I built this
+## 🧠 Why I built this
 
-I'm learning Linux and wanted something hands-on instead of just reading hardening checklists. This checks my own machine against a small baseline I picked myself. Each check lives in its own file in `checks/`, and `audit.sh` just loops through all of them and adds up the results. Nothing here auto-fixes anything on purpose — it tells you what's wrong and how to fix it, you decide if you want to.
+I'm learning Linux and wanted something more hands-on than just reading hardening checklists, so I built a tool that actually checks my own machine against a basic security baseline. Every check lives in its own file in `checks/`, and `audit.sh` just runs each one and tallies up the results. It doesn't auto-fix anything on purpose — it tells you exactly what's wrong and exactly how to fix it yourself, so you actually learn what's going on instead of just clicking a button.
 
 ---
 
 ## ✅ Requirements
 
-* Root privileges (`sudo`)
 * Bash
-
-That's it. No extra packages needed to run the auditor itself — the checks just look at whatever's already on your system (firewall tool, ssh config, file permissions) and adapt to what they find.
+* Root privileges (`sudo`) — needed to read protected files like `/etc/shadow` and the real SSH config
+* Works on **Debian, Ubuntu, Arch, Fedora, RHEL** — checks detect your package manager and firewall tool automatically, nothing is hardcoded to one distro
 
 ---
 
 ## ⚙️ What It Checks
 
-**SSH Hardening** (`checks/ssh.sh`)
-* Root login disabled
-* Password authentication disabled
-* SSH not running on the default port 22
+4 categories, 10 individual checks total:
 
-**Firewall Status** (`checks/firewall.sh`)
-* Checks for an active firewall — tries UFW, then firewalld, then nftables, then falls back to checking iptables rules directly. Works no matter which one your distro uses.
+### 🔑 SSH Hardening (`checks/ssh.sh`)
+* Root login is disabled
+* Password authentication is disabled (key-based login only)
+* SSH isn't running on the default port 22
 
-**File Permissions** (`checks/files.sh`)
+### 🔥 Firewall Status (`checks/firewall.sh`)
+* Detects and checks whichever firewall you actually have: **UFW**, **firewalld**, **nftables**, or raw **iptables**
+* Flags a system with no active firewall at all
+
+### 📂 File Permissions (`checks/files.sh`)
 * World-writable files in `/etc`
 * World-writable files in `/tmp`
-* World-writable directories missing the sticky bit (the actual dangerous version of that problem)
+* World-writable directories missing the sticky bit (the real risk — lets anyone delete/rename other users' files)
 * Unusually high number of SUID binaries
 
-**User Security** (`checks/user.sh`)
-* `/etc/shadow` scanned for accounts with empty passwords
+### 👤 User Security (`checks/user.sh`)
+* Checks `/etc/shadow` for accounts with a truly empty password (locked accounts are correctly ignored)
 
-Every failed check comes with a `Fix:` hint telling you the actual command or config change needed — this isn't just a checklist, it tells you what to do about it.
+Every failed check comes tagged with a severity — `CRITICAL`, `HIGH`, `MEDIUM`, or `LOW` — and a one-line fix, so you're never just staring at a red `[FAIL]` wondering what to do next.
 
 ---
 
 ## 🚀 Getting Started
 
-1. Make the main script and all check scripts executable:
+1. Make everything executable:
    ```bash
    chmod +x audit.sh checks/*.sh
    ```
@@ -57,7 +59,24 @@ Every failed check comes with a `Fix:` hint telling you the actual command or co
    sudo ./audit.sh
    ```
 
-Root is required since it needs to read `/etc/shadow` and the real SSH config.
+That's it. No flags, no setup, no config files to edit.
+
+---
+
+## 📊 How scoring works
+
+Alongside a simple `passed/total` count, you get a **risk score** — a weighted number based on how serious the failures are:
+
+| Severity | Points |
+|----------|--------|
+| CRITICAL | 10     |
+| HIGH     | 5      |
+| MEDIUM   | 3      |
+| LOW      | 1      |
+
+Lower is better. `0` means every check passed. This exists because a missing firewall (critical) and running SSH on a non-default port (low) shouldn't count the same — the score reflects actual risk, not just a raw pass count.
+
+At the end of the run, you also get a plain breakdown of exactly why you lost points, so the number isn't just a mystery.
 
 ---
 
@@ -65,32 +84,60 @@ Root is required since it needs to read `/etc/shadow` and the real SSH config.
 
 ```
 [+] Audit Started
-Checking files... [PASS]
-Checking firewall... [FAIL]
-Checking ssh... [FAIL]
 Checking user... [PASS]
-Score: 2/4
-Risk score: 6 (0 is best, lower is better)
+Checking ssh... [FAIL]
+Checking firewall... [PASS]
+Checking files... [PASS]
+
+Score: 3/4
+Risk score: 5 (0 is best, lower is better)
 
 Why you lost points:
-  [FAIL][CRITICAL] No firewall tool found or active -> Fix: install ufw (Debian/Ubuntu), firewalld (RHEL/Fedora), or nftables (Arch) and enable it
-  [FAIL][LOW] SSH is running on default port 22 -> Fix: add 'Port 2222' (or any port) to /etc/ssh/sshd_config
-Saved to: /path/to/reports/audit-20260725_235436.log
+  [FAIL][HIGH] SSH Password Authentication is enabled -> Fix: set 'PasswordAuthentication no' in /etc/ssh/sshd_config, use SSH keys instead
+
+Saved to: ./reports/audit-20260725_235436.log
 ```
 
-The risk score adds up points per fail based on severity — CRITICAL is worth 10, HIGH is 5, MEDIUM is 3, LOW is 1. Lower is always better, 0 means everything passed.
-
-Every run also saves a full timestamped log in `reports/`, so you've got a history to look back on.
+Every run also saves a full timestamped log to `reports/`, so you can look back at past audits later.
 
 ---
 
-## Roadmap
+## 🗂️ Project Structure
 
-Nothing planned right now — keeping this focused on the 4 checks it already does well rather than piling on more. If that changes I'll update this.
+```
+Shell-Warden/
+├── audit.sh          # runs every check, tallies score, saves the log
+├── checks/           # one script per check category
+│   ├── ssh.sh
+│   ├── firewall.sh
+│   ├── files.sh
+│   └── user.sh
+└── reports/          # timestamped logs from every run, auto-created
+```
+
+Want to add your own check? Drop a new `.sh` file in `checks/` that prints `[PASS]`/`[FAIL][SEVERITY]` lines and exits `0` on pass, non-zero on fail — `audit.sh` will pick it up automatically, no wiring needed.
+
+---
+
+## 🗺️ Roadmap
+
+* Map checks to actual CIS Benchmark IDs
+* Optional config file to turn individual checks on/off
+* Docker container checks (exposed ports, containers running as root)
 
 ---
 
 ## 🤝 Contributing
 
-Issues and PRs welcome. Run `shellcheck` on any script changes before submitting.
+Issues and PRs are welcome. Please run [ShellCheck](https://www.shellcheck.net/) on any script changes before submitting:
+
+```bash
+shellcheck audit.sh checks/*.sh
+```
+
+---
+
+## ⭐ Support
+
+If this helped you learn something or secure your own box, a star means a lot — this is a learning project and every bit of feedback helps it get better.
 ```

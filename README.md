@@ -3,12 +3,16 @@
 A lightweight Linux security auditor, built from scratch in plain Bash. It runs a set of checks against your system, tells you what's wrong in plain English, tells you how to fix it, and gives you a risk score — no dependencies, no config files, just scripts.
 
 ![lint](https://github.com/Nexaryn/Shell-Warden/actions/workflows/lint.yml/badge.svg)
+![license](https://img.shields.io/github/license/Nexaryn/Shell-Warden)
+![last commit](https://img.shields.io/github/last-commit/Nexaryn/Shell-Warden)
+![top language](https://img.shields.io/github/languages/top/Nexaryn/Shell-Warden)
+![made with bash](https://img.shields.io/badge/made%20with-bash-1f425f.svg)
 
 ---
 
 ## 🧠 Why I built this
 
-I'm learning Linux and wanted something more hands-on than just reading hardening checklists, so I built a tool that actually checks my own machine against a basic security baseline. Every check lives in its own file in `checks/`, and `audit.sh` just runs each one and tallies up the results. It doesn't auto-fix anything on purpose — it tells you exactly what's wrong and exactly how to fix it yourself, so you actually learn what's going on instead of just clicking a button.
+I'm learning Linux and wanted something more hands-on than just reading hardening checklists, so I built a tool that actually checks my own machine against a basic security baseline. Every check lives in its own file in `checks/`, and `audit.sh` just runs each one and tallies up the results. It doesn't auto-fix anything on purpose — it tells you exactly what's wrong so you actually learn what's going on instead of just clicking a button.
 
 ---
 
@@ -16,7 +20,7 @@ I'm learning Linux and wanted something more hands-on than just reading hardenin
 
 - Bash
 - Root privileges (`sudo`) — needed to read protected files like `/etc/shadow` and the real SSH config
-
+- Works on **Debian, Ubuntu, Arch, Fedora, RHEL** — checks detect your firewall tool automatically, nothing is hardcoded to one distro
 
 ---
 
@@ -42,7 +46,7 @@ I'm learning Linux and wanted something more hands-on than just reading hardenin
 ### 👤 User Security (`checks/user.sh`)
 - Checks `/etc/shadow` for accounts with a truly empty password (locked accounts are correctly ignored)
 
-Every failed check comes tagged with a severity — `CRITICAL`, `HIGH`, `MEDIUM`, or `LOW` — and a one-line fix, so you're never just staring at a red `[FAIL]` wondering what to do next.
+Every failed check comes tagged with a severity — `CRITICAL`, `HIGH`, `MEDIUM`, or `LOW` — so you know exactly how serious a fail actually is.
 
 ---
 
@@ -66,7 +70,7 @@ That's it. No flags, no setup, no config files to edit.
 
 ## 📊 How Scoring Works
 
-Alongside a simple `passed/total` count, you get a **risk score** — a weighted number based on how serious the failures are:
+Alongside a simple `passed/total` count (how many check files came back fully clean), you get a **risk score** — a weighted number based on how serious the individual failures were:
 
 | Severity | Points |
 |----------|--------|
@@ -75,9 +79,7 @@ Alongside a simple `passed/total` count, you get a **risk score** — a weighted
 | MEDIUM   | 3      |
 | LOW      | 1      |
 
-Lower is better. `0` means every check passed. This exists because a missing firewall (critical) and running SSH on a non-default port (low) shouldn't count the same — the score reflects actual risk, not just a raw pass count.
-
-At the end of the run, you also get a plain breakdown of exactly why you lost points, so the number isn't just a mystery.
+Lower is better. `0` means every single check passed. This exists because a missing firewall (critical) and running SSH on a non-default port (low) shouldn't count the same — the score reflects actual risk, not just a raw pass/fail count.
 
 ---
 
@@ -91,11 +93,7 @@ Checking firewall... [PASS]
 Checking files... [PASS]
 
 Score: 3/4
-Risk score: 5 (0 is best, lower is better)
-
-Why you lost points:
-  [FAIL][HIGH] SSH Password Authentication is enabled -> Fix: set 'PasswordAuthentication no' in /etc/ssh/sshd_config, use SSH keys instead
-
+Risk score: 5 (Lower is better)
 Saved to: ./reports/audit-20260725_235436.log
 ```
 
@@ -120,14 +118,6 @@ Want to add your own check? Drop a new `.sh` file in `checks/` that prints `[PAS
 
 ---
 
-## 🗺️ Roadmap
-
-- Map checks to actual CIS Benchmark IDs
-- Optional config file to turn individual checks on/off
-- Docker container checks (exposed ports, containers running as root)
-
----
-
 ## 🤝 Contributing
 
 Issues and PRs are welcome. Please run [ShellCheck](https://www.shellcheck.net/) on any script changes before submitting:
@@ -135,6 +125,12 @@ Issues and PRs are welcome. Please run [ShellCheck](https://www.shellcheck.net/)
 ```bash
 shellcheck audit.sh checks/*.sh
 ```
+
+---
+
+## 📜 License
+
+MIT — do whatever you want with this, just don't blame me if it doesn't cover something your setup needed.
 
 ---
 

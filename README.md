@@ -16,7 +16,7 @@ I'm learning Linux and wanted something more hands-on than just reading hardenin
 
 - Bash
 - Root privileges (`sudo`) — needed to read protected files like `/etc/shadow` and the real SSH config
-- Works on **Debian, Ubuntu, Arch, Fedora, RHEL** — checks detect your package manager and firewall tool automatically, nothing is hardcoded to one distro
+
 
 ---
 

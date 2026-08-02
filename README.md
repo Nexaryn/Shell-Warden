@@ -125,13 +125,6 @@ Issues and PRs are welcome. Please run [ShellCheck](https://www.shellcheck.net/)
 ```bash
 shellcheck audit.sh checks/*.sh
 ```
-
----
-
-## 📜 License
-
-MIT — do whatever you want with this, just don't blame me if it doesn't cover something your setup needed.
-
 ---
 
 ## ⭐ Support

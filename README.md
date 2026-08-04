@@ -6,7 +6,6 @@ A lightweight Linux security auditor, built from scratch in plain Bash. It runs 
 ![license](https://img.shields.io/github/license/Nexaryn/Shell-Warden)
 ![last commit](https://img.shields.io/github/last-commit/Nexaryn/Shell-Warden)
 ![top language](https://img.shields.io/github/languages/top/Nexaryn/Shell-Warden)
-![made with bash](https://img.shields.io/badge/made%20with-bash-1f425f.svg)
 
 ---
 
